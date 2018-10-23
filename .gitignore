@@ -1,3 +1,5 @@
 .vscode/
 venv/
-*.code_workspace
+*.code-workspace
+*.sublime-*
+scratch/*
