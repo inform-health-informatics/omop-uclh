@@ -1,6 +1,5 @@
+# General utilities and helpers
 
-def foo():
-    pass
 
 def gen_connection_string(d, engine='postgresql'):
     """Generates a SQLAlchemy connection string from a dictionary"""

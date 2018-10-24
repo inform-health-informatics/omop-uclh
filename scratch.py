@@ -18,5 +18,18 @@ dal.db_init(connection_dict)
 inspector = sa.inspect(dal.engine)
 inspector.get_table_names()
 
-dal.build_from_vocab_csv(dal.concept, 'vocab/CONCEPT.csv' )
-dal.build_from_vocab_csv(dal.vocabulary, 'vocab/VOCABULARY.csv' )
+dal.build_from_vocab_csv(dal.concept, 'vocab/CONCEPT.csv')
+dal.build_from_vocab_csv(dal.vocabulary, 'vocab/VOCABULARY.csv')
+dal.build_from_vocab_csv(dal.domain, 'vocab/domain.csv')
+dal.build_from_vocab_csv(dal.concept_class, 'vocab/concept_class.csv')
+dal.build_from_vocab_csv(dal.concept_relationship, 'vocab/concept_relationship.csv')
+dal.build_from_vocab_csv(dal.relationship, 'vocab/relationship.csv')
+dal.build_from_vocab_csv(dal.concept_synonym, 'vocab/concept_synonym.csv')
+dal.build_from_vocab_csv(dal.concept_ancestor, 'vocab/concept_ancestor.csv')
+
+# No such table in vocab; deprecated mapping; should be using CONCEPT_RELATIONSHIP
+# dal.build_from_vocab_csv(dal.source_to_concept_map, 'vocab/source_to_concept_map.csv' )
+
+# No vocab files
+dal.build_from_vocab_csv(dal.cohort_definition, 'vocab/cohort_definition.csv')
+dal.build_from_vocab_csv(dal.attribute_definition, 'vocab/attribute_definition.csv')
