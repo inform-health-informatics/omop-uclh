@@ -6,3 +6,4 @@ scratch/*
 vocab/*
 vocab
 __pycache__/*
+*.pyc
