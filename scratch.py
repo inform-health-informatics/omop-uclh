@@ -33,3 +33,13 @@ dal.build_from_vocab_csv(dal.concept_ancestor, 'vocab/concept_ancestor.csv')
 # No vocab files
 dal.build_from_vocab_csv(dal.cohort_definition, 'vocab/cohort_definition.csv')
 dal.build_from_vocab_csv(dal.attribute_definition, 'vocab/attribute_definition.csv')
+
+
+# add primary keys
+dal.conn.execute('ALTER TABLE concept ADD CONSTRAINT xpk_concept PRIMARY KEY (concept_id);')
+dal.conn.execute('ALTER TABLE vocabulary ADD CONSTRAINT xpk_vocabulary PRIMARY KEY (vocabulary_id);')
+
+# add foreign keys
+dal.conn.execute('ALTER TABLE vocabulary ADD CONSTRAINT xpk_vocabulary PRIMARY KEY (vocabulary_id);')
+dal.conn.execute('ALTER TABLE domain ADD CONSTRAINT xpk_domain PRIMARY KEY (domain_id);')
+dal.conn.execute('ALTER TABLE concept ADD CONSTRAINT fpk_concept_domain FOREIGN KEY (domain_id)  REFERENCES domain (domain_id);')

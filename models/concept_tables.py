@@ -1,7 +1,8 @@
 from datetime import datetime
 import sqlalchemy as sa
 from sqlalchemy import (MetaData, Table, Column, Integer, Numeric, Text,
-                        String, DateTime, Date, ForeignKey, Boolean, create_engine)
+                        String, DateTime, Date, ForeignKey, Boolean, create_engine,
+                        ForeignKeyConstraint)
 import psycopg2
 import csv
 from utils.utils import gen_connection_string
@@ -177,3 +178,8 @@ class DataAccessLayer:
             cur.copy_from(f, vocab_table.name, sep='\t')
 
         pysco_conn.commit()
+
+
+    def add_constraints(self):
+        """Add foreign key constraints"""
+
