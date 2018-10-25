@@ -59,6 +59,8 @@ for file_name in VOCAB_file_names:
         build_from_vocab_csv(DSN, vocab_table.lower(), fp, force)
     except psycopg2.DataError as e:
         print('!!! FAILED loading {} into {}, {}'.format(fp, vocab_table, e))
+        # - [ ] @TODO: (2018-10-26) fixme: try loading line by line rather than mass copy?
+        # !!! FAILED loading vocab/DRUG_STRENGTH.csv into DRUG_STRENGTH, invalid input syntax for type numeric: ""
 
 
 # - [ ] @TODO: (2018-10-25) fails for drug_strength
@@ -74,6 +76,12 @@ def extract_SQL_from_file(fp):
 
 
 def execute_SQL(DSN, SQL):
+    """Uses contexts to safely execute raw SQL with psycopg2
+
+    Arguments:
+        DSN {string} -- connection string to database
+        SQL {string} -- raw SQL as text
+    """
     print('--- Executing: {} '.format(SQL))
     with psycopg2.connect(DSN) as conn:
         with conn.cursor() as curs:
@@ -91,3 +99,20 @@ for file_name in CDM_files_names[1:]:
     fp = CDM_files_path + file_name
     SQLs = extract_SQL_from_file(fp)
     [execute_SQL(DSN, SQL) for SQL in SQLs]
+
+# - [ ] @TODO: (2018-10-26) constraint bugs and failures
+# !!! OperationalError executing: CLUSTER concept_ancestor  USING idx_concept_ancestor_id_1 ;, could not extend file "base/16384/16690": No space left on device
+# HINT:  Check free disk space.
+# !!! IntegrityError executing: ALTER TABLE concept_synonym ADD CONSTRAINT fpk_concept_synonym_concept FOREIGN KEY (concept_id)  REFERENCES concept (concept_id);, insert or update
+# on table "concept_synonym" violates foreign key constraint "fpk_concept_synonym_concept"
+# DETAIL:  Key (concept_id)=(724938) is not present in table "concept".
+
+# --- Executing: ALTER TABLE concept_ancestor ADD CONSTRAINT fpk_concept_ancestor_concept_1 FOREIGN KEY (ancestor_concept_id)  REFERENCES concept (concept_id);
+# !!! IntegrityError executing: ALTER TABLE concept_ancestor ADD CONSTRAINT fpk_concept_ancestor_concept_1 FOREIGN KEY (ancestor_concept_id)  REFERENCES concept (concept_id);, inse
+# rt or update on table "concept_ancestor" violates foreign key constraint "fpk_concept_ancestor_concept_1"
+# DETAIL:  Key (ancestor_concept_id)=(45888206) is not present in table "concept".
+
+# --- Executing: ALTER TABLE concept_ancestor ADD CONSTRAINT fpk_concept_ancestor_concept_2 FOREIGN KEY (descendant_concept_id)  REFERENCES concept (concept_id);
+# !!! IntegrityError executing: ALTER TABLE concept_ancestor ADD CONSTRAINT fpk_concept_ancestor_concept_2 FOREIGN KEY (descendant_concept_id)  REFERENCES concept (concept_id);, in
+# sert or update on table "concept_ancestor" violates foreign key constraint "fpk_concept_ancestor_concept_2"
+# DETAIL:  Key (descendant_concept_id)=(2514520) is not present in table "concept".
