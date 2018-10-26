@@ -81,12 +81,43 @@ class Spell():
         pass {[type]} -- [description]
     """
 
-    def __init__(self, patient):
+    # - [ ] @TODO: (2018-10-26) you need patient passed through to for birth/death checks against spell; not yet implemented
+    def __init__(self, patient, los_mean=7, los_sd=3, los_max=365):
+        """Set up spell
 
-        los_days = min(np.random.lognormal(1.5,1.), 365)
-        self.los_hours = dt.timedelta(hours=los_days*24)
-        self.start = dt.datetime.utcnow() - dt.timedelta(hours = np.random.uniform(0.0, 24*(365 - los_days))) - self.los_hours
+        Derive start and stop of spell using a lognormal distribution
+
+        Arguments:
+            patient {Patient object} -- Patient object needed to manage birth/death checks
+
+        Keyword Arguments:
+            los_mean {number} -- mean length of stay in days (default: {7})
+            los_sd {number} -- sd length of stay in days (default: {3})
+        """
+
+        _los_days = self._gen_los_days(los_mean, los_sd, los_max)
+        self.los_hours = dt.timedelta(hours=_los_days * 24)
+        self.start = (dt.datetime.utcnow( )
+            - dt.timedelta(hours=np.random.uniform(0.0, 24 * (365 - _los_days)))
+            - self.los_hours)
         self.stop = self.start + self.los_hours
+
+
+    @staticmethod
+    def _gen_los_days(los_mean, los_sd, los_max):
+        # Convert length of stay parameters to those needed for lognormal
+        # see https://www.mathworks.com/help/stats/lognpdf.html
+        # max capped at 365 days
+
+        # - [ ] @TODO: (2018-10-26) convert to docstring to test
+        # np.random.seed(seed=None)
+        # np.std([_gen_los_days(7, 3) for i in range(100000)])
+
+        _los_mu = np.log(los_mean**2 / ((los_sd**2 + los_mean**2)**0.5))
+        _los_sd = (np.log((los_sd**2 / los_mean**2) + 1))**0.5
+        return min(np.random.lognormal(_los_mu, _los_sd), los_max)
+
+
 
 
 class Subspell(Spell):
@@ -114,4 +145,3 @@ for i in range(10):
     print(mrsjones.spell.start)
     print(mrsjones.spell.los_hours)
     print(mrsjones.spell.stop)
-
