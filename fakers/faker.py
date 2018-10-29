@@ -144,13 +144,29 @@ class Spell():
         # see https://www.mathworks.com/help/stats/lognpdf.html
         # max capped at 365 days
 
-        # - [ ] @TODO: (2018-10-26) convert to docstring to test
+        # - [ ] @TODO: (2018-10-26) convert to docstring to test @later
         # np.random.seed(seed=None)
         # np.std([_gen_los_days(7, 3) for i in range(100000)])
 
         _los_mu = np.log(los_mean**2 / ((los_sd**2 + los_mean**2)**0.5))
         _los_sd = (np.log((los_sd**2 / los_mean**2) + 1))**0.5
         return min(np.random.lognormal(_los_mu, _los_sd), los_max)
+
+    def gen_time_series(self, cadence=None):
+        # return times by natural cadence
+        # - daily bloods
+        # - regular ward obs
+        # - close monitoring in critical care
+        # - [ ] @TODO: (2018-10-26) implement missingness
+        # - [ ] @ENHANCEMENT: (2018-10-26) implemnent jitter so times don't line up
+
+        # default cadence
+        if cadence is None:
+            cadence = '1D'
+
+        ts = pd.date_range(self.start, self.stop, freq=cadence)
+
+        return ts
 
 
 # - [ ] @TODO: (2018-10-26) not yet implemented
@@ -169,6 +185,7 @@ print(mrjones.patient.id_nhs)
 print(mrjones.spell.start)
 print(mrjones.spell.los_hours)
 print(mrjones.spell.stop)
+print(mrjones.spell.gen_time_series())
 
 for i in range(10):
     # switch seed off for randomness
