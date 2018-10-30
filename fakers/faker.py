@@ -56,26 +56,40 @@ class Faker():
     """
 
     # tuple rather than list since avoiding mutables as class variables
-    fake_labels = tuple()
-    fake_classes = dict()
+    # fakers1D = dict()
+    fakers2D = dict()
 
     def __init__(self, patient, spell, subspells):
         self.patient = patient
         self.spell = spell
         self.subspells = subspells
         # generate the list of classes that can fake data
-        if not len(Faker.fake_labels):
-            _tmp_lst = list()
-            clsmembers = inspect.getmembers(fakers.TwoD, inspect.isclass)
-            for string, cls in clsmembers:
-                try:
-                    instance = cls(None)
-                    _tmp_lst.append(instance.conceptkeys)
-                    Faker.fake_classes[string] = cls
-                except (TypeError, AttributeError) as e:
-                    continue
-            # convert list to tuple
-            Faker.fake_labels = tuple(_tmp_lst)
+        # if not len(fakers.OneD):
+        #     Faker.fakers1D = _multikey_dict_of_classes(fakers.OneD)
+        if not len(Faker.fakers2D):
+            Faker.fakers2D = self._multikey_dict_of_classes(fakers.TwoD)
+
+    @staticmethod
+    def _multikey_dict_of_classes(mod):
+        """Returns a class object from the TwoD or OneD list if presented with either a concept code or a shortname
+
+        [description]
+
+        Arguments:
+            mod {module} -- python module containing class definitions
+        """
+        _dict = dict()
+        clsmembers = inspect.getmembers(mod, inspect.isclass)
+        for string, cls in clsmembers:
+            try:
+                # - [ ] @FIXME: (2018-10-30) needs to work for 1d where there is
+                #   no positional argument
+                instance = cls(None)
+                labels = instance.conceptkeys
+                _dict.update(_dict.fromkeys(list(labels), cls))
+            except (TypeError, AttributeError) as e:
+                continue
+        return _dict
 
     def fake_these(self, concepts, DSN=None):
         # - [ ] @TODO: (2018-10-26) fake a list of different variables
@@ -105,9 +119,10 @@ class Faker():
         # match the object to the provided concept name
         # and instantiate with appropriate time series
         try:
-            fake_ = Faker.fake_classes[concept](self.spell.ts)
+            fake_ = Faker.fakers2D[concept](self.spell.ts)
         except KeyError as e:
-            raise NotImplementedError('{}: Simulation method not implemented'.format(concept))
+            raise NotImplementedError(
+                '{}: Simulation method not implemented'.format(concept))
 
         # 3. Returns the simulated data either as
         if DSN is None:
