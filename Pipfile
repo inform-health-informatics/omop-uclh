@@ -1,0 +1,18 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+"psycopg2" = "*"
+numpy = "*"
+pandas = "*"
+sqlalchemy = "*"
+
+[dev-packages]
+ipython = "*"
+"flake8" = "*"
+pylint = "*"
+
+[requires]
+python_version = "3.6"
