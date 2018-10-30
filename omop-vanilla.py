@@ -3,7 +3,7 @@ import re
 from utils.utils import gen_connection_string, build_from_vocab_csv, clean_start
 import psycopg2
 
-# - [ ] @TODO: (2018-10-23) set these up as environment variables
+# - [ ] @ENHANCEMENT: (2018-10-23) set these up as environment variables
 connection_dict = {'user': 'uclh',
                    'host': 'localhost',
                    'port': 55432,
@@ -16,7 +16,7 @@ force = True
 if force:
     clean_start(DSN, force)
 
-# - [ ] @TODO: (2018-10-25) convert to git submodule or pull specific commit
+# - [ ] @ENHANCEMENT: (2018-10-25) convert to git submodule or pull specific commit
 # The order is important
 CDM_files_path = 'CommonDataModel/PostgreSQL/'
 CDM_files_names = """
@@ -59,11 +59,11 @@ for file_name in VOCAB_file_names:
         build_from_vocab_csv(DSN, vocab_table.lower(), fp, force)
     except psycopg2.DataError as e:
         print('!!! FAILED loading {} into {}, {}'.format(fp, vocab_table, e))
-        # - [ ] @TODO: (2018-10-26) fixme: try loading line by line rather than mass copy?
+        # - [ ] @FIXME: (2018-10-26) fixme: try loading line by line rather than mass copy?
         # !!! FAILED loading vocab/DRUG_STRENGTH.csv into DRUG_STRENGTH, invalid input syntax for type numeric: ""
 
 
-# - [ ] @TODO: (2018-10-25) fails for drug_strength
+# - [ ] @FIXME: (2018-10-25) fails for drug_strength
 # build_from_vocab_csv(DSN, 'drug_strength', 'vocab/DRUG_STRENGTH.csv', force)
 
 # Create indices and constraints (remaining 2 files)
@@ -100,7 +100,7 @@ for file_name in CDM_files_names[1:]:
     SQLs = extract_SQL_from_file(fp)
     [execute_SQL(DSN, SQL) for SQL in SQLs]
 
-# - [ ] @TODO: (2018-10-26) constraint bugs and failures
+# - [ ] @FIXME: (2018-10-26) constraint bugs and failures from OMOP
 # !!! OperationalError executing: CLUSTER concept_ancestor  USING idx_concept_ancestor_id_1 ;, could not extend file "base/16384/16690": No space left on device
 # HINT:  Check free disk space.
 # !!! IntegrityError executing: ALTER TABLE concept_synonym ADD CONSTRAINT fpk_concept_synonym_concept FOREIGN KEY (concept_id)  REFERENCES concept (concept_id);, insert or update
