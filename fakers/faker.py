@@ -7,7 +7,9 @@ import datetime as dt
 import numpy as np
 import pandas as pd
 from collections import namedtuple
-
+import inspect
+import fakers.TwoD
+import fakers.OneD
 
 ConceptKeys = namedtuple('ConceptKeys', [
     'concept_id',   # OMOP CDM concept ID
@@ -53,14 +55,39 @@ class Faker():
     functions to generate fake 1d and 2d data
     """
 
+    # tuple rather than list since avoiding mutables as class variables
+    fake_labels = tuple()
+    fake_classes = dict()
+
     def __init__(self, patient, spell, subspells):
         self.patient = patient
         self.spell = spell
         self.subspells = subspells
+        # generate the list of classes that can fake data
+        if not len(Faker.fake_labels):
+            _tmp_lst = list()
+            clsmembers = inspect.getmembers(fakers.TwoD, inspect.isclass)
+            for string, cls in clsmembers:
+                try:
+                    instance = cls(None)
+                    _tmp_lst.append(instance.conceptkeys)
+                    Faker.fake_classes[string] = cls
+                except (TypeError, AttributeError) as e:
+                    continue
+            # convert list to tuple
+            Faker.fake_labels = tuple(_tmp_lst)
 
-    def fake_these(self, conc, DSN=None):
+    def fake_these(self, concepts, DSN=None):
         # - [ ] @TODO: (2018-10-26) fake a list of different variables
-        pass
+        for i, concept in enumerate(concepts):
+            if i == 0:
+                df = self.fake_this(concept, DSN)
+            else:
+                _df = self.fake_this(concept, DSN)
+                _name, _vals = _df.iloc[:, 1].name, _df.iloc[:, 1].values
+                df = df.assign(_tmp=_vals)
+                df.rename(columns={'_tmp': _name}, inplace=True)
+        return df
 
     def fake_this(self, concept, DSN=None):
         """Returns fake OneD or TwoD data
@@ -74,15 +101,21 @@ class Faker():
             spell {[type]} -- [description]
         """
 
-        # 1. Find a class corresponding to the type of variable that needs to be faked
-        # - [ ] @TODO: (2018-10-26) expects string representing class name; permit reference by concept ID too
-
         # 2. Calls the simulate_data method from that class
+        # match the object to the provided concept name
+        # and instantiate with appropriate time series
+        try:
+            fake_ = Faker.fake_classes[concept](self.spell.ts)
+        except KeyError as e:
+            raise NotImplementedError('{}: Simulation method not implemented'.format(concept))
 
         # 3. Returns the simulated data either as
-        # 3.1 pandas dataframe or scalar
-        # 3.2 writes the data to the database specified by DSN and return a success statement
-        return 'foobar'
+        if DSN is None:
+            # 3.1 pandas dataframe or scalar
+            return fake_.simulate()
+        else:
+            # - [ ] @TODO: (2018-10-30) insert to the database specified by DSN and return a success statement
+            raise NotImplementedError()
 
 
 class Patient():
@@ -122,7 +155,7 @@ class Spell():
     """
 
     # - [ ] @TODO: (2018-10-26) you need patient passed through to for birth/death checks against spell; not yet implemented
-    def __init__(self, patient, los_mean=7, los_sd=3, los_max=365):
+    def __init__(self, patient, los_mean=7, los_sd=3, los_max=365, cadence='6H'):
         """Set up spell
 
         Derive start and stop of spell using a lognormal distribution
@@ -142,10 +175,12 @@ class Spell():
                                                              24 * (365 - _los_days)))
                       - self.los_hours)
         self.stop = self.start + self.los_hours
+        self.cadence = cadence
+        self.ts = self.gen_time_series(cadence=self.cadence)
 
     def __str__(self):
         return 'Spell: {:.2} days from {} to {}'.format(
-            self.los_hours.total_seconds()/(24*60*60), self.start, self.stop)
+            self.los_hours.total_seconds() / (24 * 60 * 60), self.start, self.stop)
 
     @staticmethod
     def _gen_los_days(los_mean, los_sd, los_max):
@@ -187,21 +222,21 @@ class Subspell(Spell):
 
 # - [ ] @TODO: (2018-10-26) implement tests for this class
 # testing
-mrjones = fake_it(seed=42, n_subspells=1)
-print(mrjones)
-print(mrjones.patient)
-print(mrjones.patient.id_nhs)
-print(mrjones.spell.start)
-print(mrjones.spell.los_hours)
-print(mrjones.spell.stop)
-print(mrjones.spell.gen_time_series())
+# mrjones = fake_it(seed=42, n_subspells=1)
+# print(mrjones)
+# print(mrjones.patient)
+# print(mrjones.patient.id_nhs)
+# print(mrjones.spell.start)
+# print(mrjones.spell.los_hours)
+# print(mrjones.spell.stop)
+# print(mrjones.spell.gen_time_series())
 
-for i in range(10):
-    # switch seed off for randomness
-    mrsjones = fake_it(seed=None, n_subspells=1)
-    print(mrsjones)
-    print(mrsjones.patient)
-    print(mrsjones.patient.id_nhs)
-    print(mrsjones.spell.start)
-    print(mrsjones.spell.los_hours)
-    print(mrsjones.spell.stop)
+# for i in range(10):
+#     # switch seed off for randomness
+#     mrsjones = fake_it(seed=None, n_subspells=1)
+#     print(mrsjones)
+#     print(mrsjones.patient)
+#     print(mrsjones.patient.id_nhs)
+#     print(mrsjones.spell.start)
+#     print(mrsjones.spell.los_hours)
+#     print(mrsjones.spell.stop)
