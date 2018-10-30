@@ -3,8 +3,17 @@
 A factory function and a series of classes that can be called to generate fake
 data
 """
-import numpy as np
 import datetime as dt
+import numpy as np
+import pandas as pd
+from collections import namedtuple
+
+
+ConceptKeys = namedtuple('ConceptKeys', [
+    'concept_id',   # OMOP CDM concept ID
+    'shortName',    # something you can type when writing code
+    'FSN'           # fully specified name (as per SNOMED approach)
+])
 
 
 def fake_it(seed=42, n_subspells=1):
