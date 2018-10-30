@@ -3,7 +3,11 @@ venv/
 *.code-workspace
 *.sublime-*
 scratch/*
+*scratch.py
+*fridge.py
+*interactive.py
 vocab/*
 vocab
 __pycache__/*
 *.pyc
+
