@@ -50,17 +50,53 @@ t_visit = metadata.tables['visit_occurrence']
 
 # - [ ] @TODO: (2018-10-30) test CRUD operations on example table
 # insert a list of dictionaries
-patients = [fake.fake_it(seed=i) for i in range(5)]
+patients = [fake.fake_it() for i in range(5)]
+
+# Insert person level data
+# ------------------------
 fields_person = """
     person_id
     gender_concept_id
     year_of_birth
     race_concept_id
     ethnicity_concept_id""".split()
-persons = [{k: v for k, v in i.patient.__dict__.items() if k in fields_person}
-           for i in patients]
-ins = t_person.insert()
-result = connection.execute(ins, persons)
+
+def insert_many(connection, _patients, _obj, _table, _fields):
+    """Insert from patients into table
+
+    Given a list of patient objects then extract person, spell or measurement
+    level data and insert into appropriate table
+
+    Arguments:
+        connection {[type]} -- database connection
+        table {[type]} -- target table object
+        _patients {[type]} -- list of patient objects
+        _fields {[type]} -- fields to be inserted
+    """
+    _rows = [{k: v for k, v in getattr(i, _obj).__dict__.items() if k in _fields}
+           for i in _patients]
+    import pdb; pdb.set_trace()
+    ins = _table.insert()
+    return connection.execute(ins, _rows)
+
+
+result = insert_many(connection, patients, 'patient', t_person, fields_person)
+
+# Insert spell (visit_occurence) level data
+# -----------------------------------------
+fields_visit = """
+visit_occurrence_id
+person_id
+visit_concept_id
+visit_start_date
+visit_start_datetime
+visit_end_date
+visit_end_datetime
+visit_type_concept_id
+""".split()
+
+result = insert_many(connection, patients, , fields_visit)
+
 # - [ ] @TODO: (2018-10-30) # create fake data as pandas dataframe
 # - [ ] @TODO: (2018-10-30) # write to database
 
