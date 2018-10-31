@@ -154,6 +154,44 @@ class Patient():
         # - [ ] @TODO: (2018-10-26) implement dob paying attention that age will
         #   affect spell dates since you can't be admitted before you are born
         #   or after you die!
+        # - [ ] @TODO: (2018-10-31) define a default value for each mandatory
+        #   column of the person table
+
+        # person_id                   INTEGER     NOT NULL ,
+        self.person_id = np.random.randint(999999999999)
+        # gender_concept_id           INTEGER     NOT NULL ,
+        int(pd.Series( dict(Male=8507, Female=8532)).sample())
+        self.gender_concept_id = int(pd.Series(
+            dict(Male=8507, Female=8532)).sample())
+        # year_of_birth               INTEGER     NOT NULL ,
+        self.year_of_birth = np.random.randint(low=1918, high=2018)
+        # month_of_birth              INTEGER     NULL,
+        # day_of_birth                INTEGER     NULL,
+        # birth_datetime              TIMESTAMP   NULL,
+        # race_concept_id             INTEGER     NOT NULL,
+        race_concepts = [8515, 8516, 8522, 8527, 8552, 8557, 8657, 9178,
+                         38003572, 38003573, 38003574, 38003575, 38003576, 38003577, 38003578,
+                         38003579, 38003580, 38003581, 38003582, 38003583, 38003584, 38003585,
+                         38003586, 38003587, 38003588, 38003589, 38003590, 38003591, 38003592,
+                         38003593, 38003594, 38003595, 38003596, 38003597, 38003598, 38003599,
+                         38003600, 38003601, 38003602, 38003603, 38003604, 38003605, 38003606,
+                         38003607, 38003608, 38003609, 38003610, 38003611, 38003612, 38003613,
+                         38003614, 38003615, 38003616]
+        self.race_concept_id = int(pd.Series(race_concepts).sample())
+        # ethnicity_concept_id        INTEGER     NOT NULL,
+        self.ethnicity_concept_id = int(pd.Series(
+            dict(HispanicOrLatino=38003563,
+                 NotHispanicorLatino=38003564)).sample())
+        # location_id                 INTEGER     NULL,
+        # provider_id                 INTEGER     NULL,
+        # care_site_id                INTEGER     NULL,
+        # person_source_value         VARCHAR(50) NULL,
+        # gender_source_value         VARCHAR(50) NULL,
+        # gender_source_concept_id    INTEGER     NULL,
+        # race_source_value           VARCHAR(50) NULL,
+        # race_source_concept_id      INTEGER     NULL,
+        # ethnicity_source_value      VARCHAR(50) NULL,
+        # ethnicity_source_concept_id INTEGER     NULL
 
     def __str__(self):
         # str is the pretty version / repr is the dev version
