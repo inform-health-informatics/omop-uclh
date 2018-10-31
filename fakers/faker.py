@@ -18,7 +18,7 @@ ConceptKeys = namedtuple('ConceptKeys', [
 ])
 
 
-def fake_it(seed=42, n_subspells=1):
+def fake_it(seed=None, n_subspells=1):
     """Factory function that builds up an instance of a spell
 
     An OMOP visit (equivalent to an NHS spell) is the fundamental unit necessary
@@ -157,10 +157,11 @@ class Patient():
         # - [ ] @TODO: (2018-10-31) define a default value for each mandatory
         #   column of the person table
 
+        # via spec for person table
+        # -------------------------
         # person_id                   INTEGER     NOT NULL ,
-        self.person_id = np.random.randint(2147483647) #int4 max
+        self.person_id = np.random.randint(2147483647)  # int4 max
         # gender_concept_id           INTEGER     NOT NULL ,
-        int(pd.Series( dict(Male=8507, Female=8532)).sample())
         self.gender_concept_id = int(pd.Series(
             dict(Male=8507, Female=8532)).sample())
         # year_of_birth               INTEGER     NOT NULL ,
@@ -185,7 +186,7 @@ class Patient():
         # location_id                 INTEGER     NULL,
         # provider_id                 INTEGER     NULL,
         # care_site_id                INTEGER     NULL,
-        # person_source_value         VARCHAR(50) NULL,
+        # person_source_value         VARCHAR(50) ULL,
         # gender_source_value         VARCHAR(50) NULL,
         # gender_source_concept_id    INTEGER     NULL,
         # race_source_value           VARCHAR(50) NULL,
@@ -230,6 +231,40 @@ class Spell():
         self.stop = self.start + self.los_hours
         self.cadence = cadence
         self.ts = self.gen_time_series(cadence=self.cadence)
+
+        # via spec for VISIT_OCCURENCE table
+        # ----------------------------------
+        # visit_occurrence_id           INTEGER     NOT NULL ,
+        self.visit_occurrence_id = np.random.randint(2147483647)  # int4 max
+        # person_id                     INTEGER     NOT NULL,
+        self.person_id = patient.person_id
+        # visit_concept_id              INTEGER     NOT NULL,
+        self.visit_concept_id = int(pd.Series(
+            dict(EmergencyRoomandInpatientVisit=262,
+                 InpatientVisit=9201,
+                 OutpatientVisit=9202,
+                 EmergencyRoomVisit=9203,)).sample())
+        # visit_start_date              DATE        NOT NULL,
+        self.visit_start_date = self.start.date()
+        # visit_start_datetime          TIMESTAMP   NULL,
+        self.visit_start_datetime = self.start
+        # visit_end_date                DATE        NOT NULL,
+        self.visit_end_date = self.stop.date()
+        # visit_end_datetime            TIMESTAMP   NULL,
+        self.visit_end_datetime =self.stop
+        # visit_type_concept_id         INTEGER     NOT NULL,
+        # Visit derived from EHR encounter record
+        # http://athena.ohdsi.org/search-terms/terms/32035
+        self.visit_type_concept_id = 32035
+        # provider_id                   INTEGER     NULL,
+        # care_site_id                  INTEGER     NULL,
+        # visit_source_value            VARCHAR(50) NULL,
+        # visit_source_concept_id       INTEGER     NULL ,
+        # admitting_source_concept_id   INTEGER     NULL ,
+        # admitting_source_value        VARCHAR(50) NULL ,
+        # discharge_to_concept_id       INTEGER     NULL ,
+        # discharge_to_source_value     VARCHAR(50) NULL ,
+        # preceding_visit_occurrence_id INTEGER     NULL
 
     def __str__(self):
         return 'Spell: {:.2} days from {} to {}'.format(
