@@ -158,7 +158,7 @@ class Patient():
         #   column of the person table
 
         # person_id                   INTEGER     NOT NULL ,
-        self.person_id = np.random.randint(999999999999)
+        self.person_id = np.random.randint(2147483647) #int4 max
         # gender_concept_id           INTEGER     NOT NULL ,
         int(pd.Series( dict(Male=8507, Female=8532)).sample())
         self.gender_concept_id = int(pd.Series(
