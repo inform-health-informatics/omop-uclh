@@ -39,27 +39,24 @@ DSN = gen_connection_string(connection_dict)
 metadata = sa.MetaData()
 engine = sa.create_engine(DSN)
 connection = engine.connect()
-# bind the whole database
-metadata.reflect(bind=engine)
 
-# Reflect person, visit and measurement tables
-t_person = metadata.tables['person']
-t_visit = metadata.tables['visit_occurrence']
-# Good for subvisits at 'location or service level'; can be sequential or hierarchical
-# t_visit_detail = metadata.tables['visit_detail']
-
-# - [ ] @TODO: (2018-10-30) test CRUD operations on example table
-# insert a list of dictionaries
-patients = [fake.fake_it() for i in range(5)]
-
-# Insert person level data
-# ------------------------
 fields_person = """
     person_id
     gender_concept_id
     year_of_birth
     race_concept_id
     ethnicity_concept_id""".split()
+
+fields_visit = """
+    visit_occurrence_id
+    person_id
+    visit_concept_id
+    visit_start_date
+    visit_start_datetime
+    visit_end_date
+    visit_end_datetime
+    visit_type_concept_id
+""".split()
 
 def insert_many(connection, _patients, _obj, _table, _fields):
     """Insert from patients into table
@@ -75,39 +72,35 @@ def insert_many(connection, _patients, _obj, _table, _fields):
     """
     _rows = [{k: v for k, v in getattr(i, _obj).__dict__.items() if k in _fields}
            for i in _patients]
-    import pdb; pdb.set_trace()
     ins = _table.insert()
     return connection.execute(ins, _rows)
 
 
-result = insert_many(connection, patients, 'patient', t_person, fields_person)
-
-# Insert spell (visit_occurence) level data
-# -----------------------------------------
-fields_visit = """
-visit_occurrence_id
-person_id
-visit_concept_id
-visit_start_date
-visit_start_datetime
-visit_end_date
-visit_end_datetime
-visit_type_concept_id
-""".split()
-
-result = insert_many(connection, patients, , fields_visit)
-
-# - [ ] @TODO: (2018-10-30) # create fake data as pandas dataframe
-# - [ ] @TODO: (2018-10-30) # write to database
 
 
 def main():
     print('>>> Connecting vis DSN: {}'.format(DSN))
+
+    # bind the whole database
+    metadata.reflect(bind=engine)
+
+    # Reflect person, visit and measurement tables
+    t_person = metadata.tables['person']
     print('>>> Person table columns: {}'.format(t_person.columns.keys()))
+    t_visit = metadata.tables['visit_occurrence']
+    # Good for subvisits at 'location or service level'; can be sequential or hierarchical
+    # t_visit_detail = metadata.tables['visit_detail']
+
+    # - [ ] @TODO: (2018-10-30) test CRUD operations on example table
+    # insert a list of dictionaries
+    patients = [fake.fake_it() for i in range(5)]
     print('>>> Mr Smith: {}'.format(patients[0].patient.__dict__))
     # print('>>> Visit table columns: {}'.format(t_visit.columns.keys()))
     # print('>>> Measurement table columns: {}'.format(t_measurement.columns.keys()))
+    result = insert_many(connection, patients, 'patient', t_person, fields_person)
+    result = insert_many(connection, patients, 'spell', t_visit, fields_visit)
 
+    # - [ ] @TODO: (2018-10-30) # create fake data as pandas dataframe
     print('so far so good')
 
 
