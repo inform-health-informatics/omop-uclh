@@ -100,15 +100,16 @@ def main():
     result = insert_many(connection, patients, 'patient', t_person, fields_person)
     result = insert_many(connection, patients, 'spell', t_visit, fields_visit)
 
-    # insert lactates
-    rows = list()
-    for p in patients:
-        tb_name, listdic = p.fake_this('lactate', sql_ready=True)
-        rows.append(listdic)
+    # insert lactates and heart rates
+    for v in ['lactate', 'hrate']:
+        rows = list()
+        for p in patients:
+            tb_name, listdic = p.fake_this(v, sql_ready=True)
+            rows.append(listdic)
 
-    tb = metadata.tables[tb_name]
-    ins = tb.insert()
-    result = connection.execute(ins, listdic)
+        tb = metadata.tables[tb_name]
+        ins = tb.insert()
+        result = connection.execute(ins, listdic)
 
 
 
