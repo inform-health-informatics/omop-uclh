@@ -8,6 +8,8 @@ scratch/*
 *interactive.py
 vocab/*
 vocab
+labbook/*
+cooler/*
 __pycache__/*
 *.pyc
 
