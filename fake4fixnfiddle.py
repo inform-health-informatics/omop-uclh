@@ -100,6 +100,18 @@ def main():
     result = insert_many(connection, patients, 'patient', t_person, fields_person)
     result = insert_many(connection, patients, 'spell', t_visit, fields_visit)
 
+    # insert lactates
+    rows = list()
+    for p in patients:
+        tb_name, listdic = p.fake_this('lactate', sql_ready=True)
+        rows.append(listdic)
+
+    tb = metadata.tables[tb_name]
+    ins = tb.insert()
+    result = connection.execute(ins, listdic)
+
+
+
     # - [ ] @TODO: (2018-10-30) # create fake data as pandas dataframe
     print('so far so good')
 

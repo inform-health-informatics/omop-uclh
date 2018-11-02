@@ -151,7 +151,7 @@ class Faker():
                 self.spell.visit_occurrence_id,
                 **cols_not_null
                 )
-            return lisdis
+            return tb_name, lisdis
 
 
 
