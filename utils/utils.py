@@ -35,7 +35,7 @@ def parse_table_ddl(ddl: str, dialect: str ='PostgreSQL') -> List:
             column_definitions.append(
                 ColumnDefinition(l[0], dtype.upper(), nullable))
         except AssertionError:
-            print(l)
+            continue
         except IndexError:
             continue
 

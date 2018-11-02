@@ -6,13 +6,15 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 from abc import ABC, abstractmethod, abstractproperty
-from utils.omop import ConceptKeys
+from utils.omop import ConceptKeys, Measurement, Observation
+
 
 
 class TwoD(ABC):
     # simulate 2d data
 
-    def __init__(self, ts, colname=None):
+    def __init__(self, ts, colname='value'):
+        """defaults to value as colname"""
 
         self.ts = ts  # 2d timeseries
         self.colname = colname
@@ -35,7 +37,7 @@ class TwoD(ABC):
     def cdm_table(self):
         """Target table in the OMOP CMD
 
-        Should return a 'key' corresponding to the table
+        Should be a class defined in omop.py and imported above
         Manage consistency through a class dictionary?
 
         Decorators:
@@ -62,7 +64,13 @@ class Lactate(TwoD):
 
     @property
     def cdm_table(self):
-        return 'measurement'
+        return Measurement
+
+    def cols_not_null(self):
+        """Columns NOT NULL needed to write into OMOP CDM
+        """
+        return dict(
+            measurement_concept_id = Lactate(None).conceptkeys.concept_id)
 
     # - [ ] @TODO: (2018-10-30) use mixins for these simulations
     def simulate(self, cadence=None):
@@ -79,7 +87,15 @@ class HeartRate(TwoD):
 
     @property
     def cdm_table(self):
-        return 'measurement'
+        return Measurement
+
+    def cols_not_null(self):
+        """Columns NOT NULL needed to write into OMOP CDM
+        """
+        # - [ ] @TODO: (2018-11-02) @refactor: you're the class name inside the
+        #   class; obtain programmatically and move function to parent
+        return dict(
+            measurement_concept_id = HeartRate(None).conceptkeys.concept_id)
 
     def simulate(self, cadence=None):
         ts = self.ts

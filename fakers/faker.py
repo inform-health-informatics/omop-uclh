@@ -6,17 +6,10 @@ data
 import datetime as dt
 import numpy as np
 import pandas as pd
-from collections import namedtuple
 import inspect
-import fakers.TwoD
-import fakers.OneD
-
-ConceptKeys = namedtuple('ConceptKeys', [
-    'concept_id',   # OMOP CDM concept ID
-    'shortName',    # something you can type when writing code
-    'FSN'           # fully specified name (as per SNOMED approach)
-])
-
+import fakers.TwoD as TwoD
+import fakers.OneD as OneD
+import utils.omop as omop
 
 def fake_it(seed=None, n_subspells=1):
     """Factory function that builds up an instance of a spell
@@ -64,10 +57,10 @@ class Faker():
         self.spell = spell
         self.subspells = subspells
         # generate the list of classes that can fake data
-        # if not len(fakers.OneD):
-        #     Faker.fakers1D = _multikey_dict_of_classes(fakers.OneD)
+        # if not len(Faker.OneD):
+        #     Faker.fakers1D = _multikey_dict_of_classes(OneD)
         if not len(Faker.fakers2D):
-            Faker.fakers2D = self._multikey_dict_of_classes(fakers.TwoD)
+            Faker.fakers2D = self._multikey_dict_of_classes(TwoD)
 
     @staticmethod
     def _multikey_dict_of_classes(mod):
@@ -88,11 +81,17 @@ class Faker():
                 labels = instance.conceptkeys
                 _dict.update(_dict.fromkeys(list(labels), cls))
             except (TypeError, AttributeError) as e:
+                # capture Type errors - where clsmember is not a class
+                # capture attribute errors - where cannot instantite class
                 continue
+        assert len(_dict)
         return _dict
 
-    def fake_these(self, concepts, DSN=None):
-        # - [ ] @TODO: (2018-10-26) fake a list of different variables
+
+    def fake_these(self, concepts):
+        # - [ ] @TODO: (2018-11-01) @deprecate; seems unlikely you will use
+        #   this; most data will need handling individually so can be targeted
+        #   to the right table
         for i, concept in enumerate(concepts):
             if i == 0:
                 df = self.fake_this(concept, DSN)
@@ -103,7 +102,7 @@ class Faker():
                 df.rename(columns={'_tmp': _name}, inplace=True)
         return df
 
-    def fake_this(self, concept, DSN=None):
+    def fake_this(self, concept, sql_ready=False):
         """Returns fake OneD or TwoD data
 
         Looks in the associated class definitions for the function to implement
@@ -113,6 +112,8 @@ class Faker():
             concept {[type]} -- [description]
             patient {[type]} -- [description]
             spell {[type]} -- [description]
+            sql_ready {Boolean} -- prepare data for insertion as dictionary for
+            SQLAlchemy insert statement for the appropriate table
         """
 
         # 2. Calls the simulate_data method from that class
@@ -124,13 +125,35 @@ class Faker():
             raise NotImplementedError(
                 '{}: Simulation method not implemented'.format(concept))
 
-        # 3. Returns the simulated data either as
-        if DSN is None:
+        df = fake_.simulate()
+        if not sql_ready:
             # 3.1 pandas dataframe or scalar
-            return fake_.simulate()
+            return df
         else:
-            # - [ ] @TODO: (2018-10-30) insert to the database specified by DSN and return a success statement
-            raise NotImplementedError()
+            # 1. determine the table for insertion (should be stored as an attribute of the concept)
+            #    might be automatically determined by the concept? or you might want to override
+            try:
+                tb_ = fake_.cdm_table # table object
+                tb_name = tb_.__name__.lower()
+                assert tb_name in omop.cdm_tables
+                # print('>>> {} will be inserted into {} table'.format(concept, tb_name.upper()))
+
+            except AssertionError as e:
+                raise KeyError('{} not in OMOP CDM tables {}'.format(tb_. omop.cdm_tables))
+
+            # now call tb_.list_of_dicts with mandatory args as determined by variable being simulated and destination table
+            # instantiate appropriate table class to give access to content for insertion
+            this_tb = tb_()
+            cols_not_null = fake_.cols_not_null() # dict
+            lisdis = this_tb.list_of_dicts(
+                df,
+                self.patient.person_id,
+                self.spell.visit_occurrence_id,
+                **cols_not_null
+                )
+            return lisdis
+
+
 
 
 class Patient():
